@@ -5,8 +5,11 @@
     <string name="search_query">Enter a search query.</string>
     <string name="action_settings">Settings</string>
     <string name="search_button_text">Search</string>
-    <string name="search_query_input_valid">Searching...</string>
+    <string name="search_query_input_valid">Searching</string>
     <string name="search_query_input_invalid">Please enter a search query.</string>
     <string name="search_query_unparseable">Sorry, there are no Dataverses, Datasets, or Files that match your search. Please try a new search by using other or broader terms.</string>
+    <string name="settings_name">Settings</string>
+    <string name="settings_server_summary">Specify which Dataverse server to search, which must be running Dataverse 4.0 or higher. The default value is \"dataverse-demo.iq.harvard.edu\".</string>
+    <string name="settings_server_title">Dataverse server</string>
 
 </resources>

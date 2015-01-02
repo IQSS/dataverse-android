@@ -1,8 +1,11 @@
 package org.dataverse.android.dataverse;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,10 +17,8 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,8 +40,7 @@ public class MainActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        // hide the dotdotdot (...) and Settings for now
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -53,6 +53,7 @@ public class MainActivity extends Activity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
 
@@ -64,8 +65,14 @@ public class MainActivity extends Activity {
         EditText searchQueryEditText = (EditText) findViewById(R.id.searchQueryEditText);
 
         if (validQueryEntered(searchQueryEditText)) {
-            Toast.makeText(this, getString(R.string.search_query_input_valid), Toast.LENGTH_LONG).show();
-            new GetSearchResults().execute();
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+            String server = sharedPref.getString("server", null);
+            if (server == null || server.isEmpty()) {
+                // FIXME DRY! Hard-coded in preferences.xml too.
+                server = "dataverse-demo.iq.harvard.edu";
+            }
+            Toast.makeText(this, getString(R.string.search_query_input_valid) + " " + server, Toast.LENGTH_SHORT).show();
+            new GetSearchResults(server).execute();
 
         } else {
             Toast.makeText(this, getString(R.string.search_query_input_invalid), Toast.LENGTH_LONG).show();
@@ -83,15 +90,20 @@ public class MainActivity extends Activity {
 
     class GetSearchResults extends AsyncTask<Void, Void, Void> {
 
+        GetSearchResults(String server) {
+            this.server = server;
+        }
+
         String jsonString = "";
         String result = "";
+        String server = "";
 
         @Override
         protected Void doInBackground(Void... params) {
             EditText searchQueryEditText = (EditText) findViewById(R.id.searchQueryEditText);
             String query = searchQueryEditText.getText().toString().replace(" ", "+");
             DefaultHttpClient httpClient = new DefaultHttpClient(new BasicHttpParams());
-            HttpGet httpGet = new HttpGet("http://dataverse-demo.iq.harvard.edu/api/search?q=" + query);
+            HttpGet httpGet = new HttpGet("http://" + server + "/api/search?q=" + query);
             httpGet.setHeader("Content-type", "application/json");
             InputStream inputStream = null;
             try {
@@ -112,6 +124,8 @@ public class MainActivity extends Activity {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+                // unable to resolve host in DNS, for example
+                result = e.getLocalizedMessage();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
