@@ -1,6 +1,7 @@
 package org.dataverse.android.dataverse;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -9,6 +10,7 @@ import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -72,12 +74,18 @@ public class MainActivity extends Activity {
                 server = "dataverse-demo.iq.harvard.edu";
             }
             Toast.makeText(this, getString(R.string.search_query_input_valid) + " " + server, Toast.LENGTH_SHORT).show();
+            hideKeyboard(searchQueryEditText);
             new GetSearchResults(server).execute();
 
         } else {
             Toast.makeText(this, getString(R.string.search_query_input_invalid), Toast.LENGTH_LONG).show();
         }
 
+    }
+
+    private void hideKeyboard(EditText searchQueryEditText) {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(searchQueryEditText.getWindowToken(), 0);
     }
 
     protected boolean validQueryEntered(EditText editText) {
