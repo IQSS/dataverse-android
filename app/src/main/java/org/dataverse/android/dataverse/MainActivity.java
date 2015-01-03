@@ -7,9 +7,11 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -33,10 +35,25 @@ import java.net.URI;
 
 public class MainActivity extends Activity {
 
+    private EditText searchQueryEditText;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        searchQueryEditText = (EditText) findViewById(R.id.searchQueryEditText);
+        searchQueryEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    TextView searchResultsTextView = (TextView) findViewById(R.id.searchResultsTextView);
+                    onSearchClick(searchResultsTextView);
+                    return true;
+                }
+                return false;
+            }
+        });
     }
 
 
@@ -65,7 +82,7 @@ public class MainActivity extends Activity {
 
     public void onSearchClick(View view) {
 
-        EditText searchQueryEditText = (EditText) findViewById(R.id.searchQueryEditText);
+        searchQueryEditText = (EditText) findViewById(R.id.searchQueryEditText);
 
         if (validQueryEntered(searchQueryEditText)) {
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);

@@ -15,7 +15,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true" />
+        android:layout_alignParentTop="true"
+        android:imeOptions="actionSearch"
+        android:inputType="text" />
 
     <Button
         android:id="@+id/searchButton"
