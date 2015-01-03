@@ -28,6 +28,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
 
 
 public class MainActivity extends Activity {
@@ -111,7 +112,15 @@ public class MainActivity extends Activity {
             EditText searchQueryEditText = (EditText) findViewById(R.id.searchQueryEditText);
             String query = searchQueryEditText.getText().toString().replace(" ", "+");
             DefaultHttpClient httpClient = new DefaultHttpClient(new BasicHttpParams());
-            HttpGet httpGet = new HttpGet("http://" + server + "/api/search?q=" + query);
+            URI url = null;
+            try {
+                url = URI.create("http://" + server + "/api/search?q=" + query);
+            } catch (IllegalArgumentException e) {
+                // newline in search query
+                result = getString(R.string.search_query_unparseable);
+                return null;
+            }
+            HttpGet httpGet = new HttpGet(url);
             httpGet.setHeader("Content-type", "application/json");
             InputStream inputStream = null;
             try {
