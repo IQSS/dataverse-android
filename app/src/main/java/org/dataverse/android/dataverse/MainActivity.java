@@ -13,7 +13,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,11 +35,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivity extends Activity {
 
     private EditText searchQueryEditText;
+    private List<String> searchResults;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +59,18 @@ public class MainActivity extends Activity {
                     return true;
                 }
                 return false;
+            }
+        });
+
+        searchResults = new ArrayList<>();
+        ListAdapter listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, searchResults);
+        ListView searchResultsListView = (ListView) findViewById(R.id.searchResultsListView);
+        searchResultsListView.setAdapter(listAdapter);
+        searchResultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                String clicked = "You selected " + String.valueOf(parent.getItemAtPosition(position));
+//                Toast.makeText(MainActivity.this, clicked, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -160,6 +179,7 @@ public class MainActivity extends Activity {
                 e.printStackTrace();
                 // unable to resolve host in DNS, for example
                 result = e.getLocalizedMessage();
+                searchResults = new ArrayList<>();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -170,6 +190,9 @@ public class MainActivity extends Activity {
         protected void onPostExecute(Void aVoid) {
             TextView searchResultsTextView = (TextView) findViewById(R.id.searchResultsTextView);
             searchResultsTextView.setText(result);
+            ListAdapter listAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, searchResults);
+            ListView searchResultsListView = (ListView) findViewById(R.id.searchResultsListView);
+            searchResultsListView.setAdapter(listAdapter);
         }
 
         private void outputSearchData(JSONObject jsonObject) {
@@ -179,18 +202,49 @@ public class MainActivity extends Activity {
             } catch (JSONException e) {
                 e.printStackTrace();
                 result = getString(R.string.search_query_unparseable);
+                searchResults = new ArrayList<>();
                 return;
             }
 
+            searchResults = new ArrayList<>();
             try {
+                Integer totalCount = data.getInt("total_count");
+                if (totalCount == 0) {
+                    result = getString(R.string.search_query_no_results);
+                } else if (totalCount == 1) {
+                    result = totalCount.toString() + " " + getString(R.string.search_results_singular);
+                } else {
+                    result = totalCount.toString() + " " + getString(R.string.search_results_plural);
+                }
                 String items = data.getString("items");
-                String[] results = items.split(",");
-                for (int i = 0; i < results.length; i++) {
-                    result = result + results[i] + "\n";
+                String noBrackets = items;
+                noBrackets = noBrackets.startsWith("[") ? noBrackets.substring(1) : noBrackets;
+                noBrackets = noBrackets.endsWith("]") ? noBrackets.substring(0, noBrackets.length() - 1) : noBrackets;
+                String[] noBracketResults = noBrackets.split(",");
+                for (String result : noBracketResults) {
+                    String[] parts = result.split(":");
+                    if (parts.length == 3) {
+                        String dvObjectType = "";
+                        String type = parts[0].trim();
+                        if (type.startsWith("dataverse")) {
+                            dvObjectType = "dataverse";
+                        } else if (type.startsWith("dataset")) {
+                            dvObjectType = "dataset";
+                        } else if (type.startsWith("datafile")) {
+                            dvObjectType = "file";
+                        } else {
+                            dvObjectType = "unknown";
+                        }
+                        String nameOrTitle = parts[1];
+                        searchResults.add(nameOrTitle + " (" + dvObjectType + ")");
+                    } else {
+                        searchResults.add(result);
+                    }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
                 result = e.getLocalizedMessage();
+                searchResults = new ArrayList<>();
             }
         }
 

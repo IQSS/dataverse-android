@@ -41,5 +41,10 @@
         android:freezesText="true"
         android:text="@string/search_query" />
 
+    <ListView
+        android:id="@+id/searchResultsListView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="180dp" />
 
 </RelativeLayout>
