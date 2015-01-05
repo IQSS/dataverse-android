@@ -42,6 +42,9 @@ import java.util.List;
 public class MainActivity extends Activity {
 
     private EditText searchQueryEditText;
+    private final String SEARCH_API_RESPONSE = "searchApiResponse";
+    private final String SEARCH_RESULTS = "searchResults";
+    private String result = "";
     private List<String> searchResults;
 
     @Override
@@ -62,7 +65,15 @@ public class MainActivity extends Activity {
             }
         });
 
-        searchResults = new ArrayList<>();
+        if (savedInstanceState != null) {
+            // http://developer.android.com/training/basics/activity-lifecycle/recreating.html
+            result = savedInstanceState.getString(SEARCH_API_RESPONSE);
+            TextView searchResultsTextView = (TextView) findViewById(R.id.searchResultsTextView);
+            searchResultsTextView.setText(result);
+            searchResults = savedInstanceState.getStringArrayList(SEARCH_RESULTS);
+        } else {
+            searchResults = new ArrayList<>();
+        }
         ListAdapter listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, searchResults);
         ListView searchResultsListView = (ListView) findViewById(R.id.searchResultsListView);
         searchResultsListView.setAdapter(listAdapter);
@@ -75,6 +86,12 @@ public class MainActivity extends Activity {
         });
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString(SEARCH_API_RESPONSE, result);
+        outState.putStringArrayList(SEARCH_RESULTS, (ArrayList<String>) searchResults);
+        super.onSaveInstanceState(outState);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -140,7 +157,6 @@ public class MainActivity extends Activity {
         }
 
         String jsonString = "";
-        String result = "";
         String server = "";
 
         @Override
