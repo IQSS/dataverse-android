@@ -15,6 +15,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -46,11 +47,17 @@ public class MainActivity extends Activity {
     private final String SEARCH_RESULTS = "searchResults";
     private String result = "";
     private List<String> searchResults;
+    private int start;
+    private int rows = 10;
+    private Integer totalCount;
+    private String hardCodedServer = "dataverse-demo.iq.harvard.edu";
+    Button previousButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        previousButton = (Button) findViewById(R.id.previousButton);
 
         searchQueryEditText = (EditText) findViewById(R.id.searchQueryEditText);
         searchQueryEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -96,7 +103,8 @@ public class MainActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        // hide menu until hard coded server resolved
+//        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -125,10 +133,11 @@ public class MainActivity extends Activity {
             String server = sharedPref.getString("server", null);
             if (server == null || server.isEmpty()) {
                 // FIXME DRY! Hard-coded in preferences.xml too.
-                server = "dataverse-demo.iq.harvard.edu";
+                server = hardCodedServer;
             }
             Toast.makeText(this, getString(R.string.search_query_input_valid) + " " + server, Toast.LENGTH_SHORT).show();
             hideKeyboard(searchQueryEditText);
+            start = 0;
             new GetSearchResults(server).execute();
 
         } else {
@@ -150,7 +159,20 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void onPreviousClick(View view) {
+        start -= rows;
+        Toast.makeText(MainActivity.this, "Getting results from " + start, Toast.LENGTH_SHORT).show();
+        new GetSearchResults(hardCodedServer).execute();
+    }
+
+    public void onNextClick(View view) {
+        start += rows;
+        Toast.makeText(MainActivity.this, "Getting results from " + start, Toast.LENGTH_SHORT).show();
+        new GetSearchResults(hardCodedServer).execute();
+    }
+
     class GetSearchResults extends AsyncTask<Void, Void, Void> {
+
 
         GetSearchResults(String server) {
             this.server = server;
@@ -163,10 +185,15 @@ public class MainActivity extends Activity {
         protected Void doInBackground(Void... params) {
             EditText searchQueryEditText = (EditText) findViewById(R.id.searchQueryEditText);
             String query = searchQueryEditText.getText().toString().replace(" ", "+");
+            String startParam = "";
+            if (start > 0) {
+                startParam = "&start=" + start;
+            }
+
             DefaultHttpClient httpClient = new DefaultHttpClient(new BasicHttpParams());
             URI url = null;
             try {
-                url = URI.create("http://" + server + "/api/search?q=" + query);
+                url = URI.create("http://" + server + "/api/search?q=" + query + startParam);
             } catch (IllegalArgumentException e) {
                 // newline in search query
                 result = getString(R.string.search_query_unparseable);
@@ -224,7 +251,7 @@ public class MainActivity extends Activity {
 
             searchResults = new ArrayList<>();
             try {
-                Integer totalCount = data.getInt("total_count");
+                totalCount = data.getInt("total_count");
                 if (totalCount == 0) {
                     result = getString(R.string.search_query_no_results);
                 } else if (totalCount == 1) {
@@ -232,6 +259,24 @@ public class MainActivity extends Activity {
                 } else {
                     result = totalCount.toString() + " " + getString(R.string.search_results_plural);
                 }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (start == 0) {
+                            previousButton.setEnabled(false);
+                        } else {
+                            previousButton.setEnabled(true);
+                        }
+                        if (start > totalCount) {
+                            ((Button) findViewById(R.id.nextButton)).setEnabled(false);
+                        } else {
+                            ((Button) findViewById(R.id.nextButton)).setEnabled(true);
+                        }
+                    }
+                });
+
+
                 String items = data.getString("items");
                 String noBrackets = items;
                 noBrackets = noBrackets.startsWith("[") ? noBrackets.substring(1) : noBrackets;
