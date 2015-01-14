@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <EditTextPreference
-        android:defaultValue="dataverse-demo.iq.harvard.edu"
+        android:defaultValue="dvn-build.hmdc.harvard.edu"
         android:key="server"
         android:summary="@string/settings_server_summary"
         android:title="@string/settings_server_title" />

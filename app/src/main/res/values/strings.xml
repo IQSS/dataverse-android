@@ -12,7 +12,7 @@
     <string name="search_results_singular">"result"</string>
     <string name="search_results_plural">"results"</string>
     <string name="settings_name">Settings</string>
-    <string name="settings_server_summary">Specify which Dataverse server to search, which must be running Dataverse 4.0 or higher. The default value is \"dataverse-demo.iq.harvard.edu\".</string>
+    <string name="settings_server_summary">Specify which Dataverse server to search, which must be running Dataverse 4.0 or higher. The default value is \"dvn-build.hmdc.harvard.edu\".</string>
     <string name="settings_server_title">Dataverse server</string>
     <string name="previous_button_text">Previous</string>
     <string name="next_button_text">Next</string>

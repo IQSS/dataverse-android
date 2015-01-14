@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -28,6 +29,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -42,16 +44,17 @@ import java.util.List;
 
 public class MainActivity extends Activity {
 
-    private EditText searchQueryEditText;
     private final String SEARCH_API_RESPONSE = "searchApiResponse";
     private final String SEARCH_RESULTS = "searchResults";
+    private final String START_VALUE = "startValue";
+    Button previousButton;
+    private EditText searchQueryEditText;
     private String result = "";
-    private List<String> searchResults;
+    private List<SearchResult> searchResults;
     private int start;
     private int rows = 10;
     private Integer totalCount;
-    private String hardCodedServer = "dataverse-demo.iq.harvard.edu";
-    Button previousButton;
+    private String hardCodedServer = "dvn-build.hmdc.harvard.edu";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,11 +80,13 @@ public class MainActivity extends Activity {
             result = savedInstanceState.getString(SEARCH_API_RESPONSE);
             TextView searchResultsTextView = (TextView) findViewById(R.id.searchResultsTextView);
             searchResultsTextView.setText(result);
-            searchResults = savedInstanceState.getStringArrayList(SEARCH_RESULTS);
+            searchResults = savedInstanceState.getParcelableArrayList(SEARCH_RESULTS);
+            start = savedInstanceState.getInt(START_VALUE);
         } else {
             searchResults = new ArrayList<>();
+            start = 0;
         }
-        ListAdapter listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, searchResults);
+        ListAdapter listAdapter = new ArrayAdapter<SearchResult>(this, android.R.layout.simple_list_item_1, searchResults);
         ListView searchResultsListView = (ListView) findViewById(R.id.searchResultsListView);
         searchResultsListView.setAdapter(listAdapter);
         searchResultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -89,14 +94,19 @@ public class MainActivity extends Activity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 //                String clicked = "You selected " + String.valueOf(parent.getItemAtPosition(position));
 //                Toast.makeText(MainActivity.this, clicked, Toast.LENGTH_SHORT).show();
+                SearchResult searchResult = (SearchResult) parent.getItemAtPosition(position);
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(searchResult.getUrl()));
+                startActivity(intent);
             }
         });
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt(START_VALUE, start);
         outState.putString(SEARCH_API_RESPONSE, result);
-        outState.putStringArrayList(SEARCH_RESULTS, (ArrayList<String>) searchResults);
+        outState.putParcelableArrayList(SEARCH_RESULTS, (ArrayList<? extends android.os.Parcelable>) searchResults);
         super.onSaveInstanceState(outState);
     }
 
@@ -173,13 +183,12 @@ public class MainActivity extends Activity {
 
     class GetSearchResults extends AsyncTask<Void, Void, Void> {
 
+        String jsonString = "";
+        String server = "";
 
         GetSearchResults(String server) {
             this.server = server;
         }
-
-        String jsonString = "";
-        String server = "";
 
         @Override
         protected Void doInBackground(Void... params) {
@@ -213,7 +222,7 @@ public class MainActivity extends Activity {
                     sb.append(line + "\n");
                 }
                 jsonString = sb.toString();
-                System.out.println("jsonString: " + jsonString);
+//                System.out.println("jsonString: " + jsonString);
                 JSONObject jsonObject = new JSONObject(jsonString);
                 outputSearchData(jsonObject);
             } catch (ClientProtocolException e) {
@@ -233,7 +242,7 @@ public class MainActivity extends Activity {
         protected void onPostExecute(Void aVoid) {
             TextView searchResultsTextView = (TextView) findViewById(R.id.searchResultsTextView);
             searchResultsTextView.setText(result);
-            ListAdapter listAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, searchResults);
+            ListAdapter listAdapter = new ArrayAdapter<SearchResult>(MainActivity.this, android.R.layout.simple_list_item_1, searchResults);
             ListView searchResultsListView = (ListView) findViewById(R.id.searchResultsListView);
             searchResultsListView.setAdapter(listAdapter);
         }
@@ -270,38 +279,39 @@ public class MainActivity extends Activity {
                         }
                         if (start > totalCount) {
                             ((Button) findViewById(R.id.nextButton)).setEnabled(false);
+                        } else if (start + rows > totalCount) {
+                            ((Button) findViewById(R.id.nextButton)).setEnabled(false);
                         } else {
                             ((Button) findViewById(R.id.nextButton)).setEnabled(true);
                         }
                     }
                 });
 
-
-                String items = data.getString("items");
-                String noBrackets = items;
-                noBrackets = noBrackets.startsWith("[") ? noBrackets.substring(1) : noBrackets;
-                noBrackets = noBrackets.endsWith("]") ? noBrackets.substring(0, noBrackets.length() - 1) : noBrackets;
-                String[] noBracketResults = noBrackets.split(",");
-                for (String result : noBracketResults) {
-                    String[] parts = result.split(":");
-                    if (parts.length == 3) {
-                        String dvObjectType = "";
-                        String type = parts[0].trim();
-                        if (type.startsWith("dataverse")) {
-                            dvObjectType = "dataverse";
-                        } else if (type.startsWith("dataset")) {
-                            dvObjectType = "dataset";
-                        } else if (type.startsWith("datafile")) {
-                            dvObjectType = "file";
-                        } else {
-                            dvObjectType = "unknown";
+                JSONArray items = data.getJSONArray("items");
+                for (int i = 0; i < items.length(); i++) {
+                    JSONObject item = (JSONObject) items.get(i);
+                    String display = "";
+                    String name = item.getString("name");
+                    String type = item.getString("type");
+                    if (type.equals("dataverse")) {
+                        display = name + " Dataverse";
+                    } else if (type.equals("dataset")) {
+                        String citation = item.getString("citation");
+                        String globalId = item.getString("global_id");
+                        JSONArray authorsArray = item.getJSONArray("authors");
+                        String authors = "";
+                        for (int j = 0; j < authorsArray.length(); j++) {
+                            authors += authorsArray.getString(j) + ", ";
                         }
-                        String nameOrTitle = parts[1];
-                        searchResults.add(nameOrTitle + " (" + dvObjectType + ")");
-                    } else {
-                        searchResults.add(result);
+                        display = name + ", " + authors + globalId;
+                    } else if (type.equals("file")) {
+                        String fileType = item.getString("file_type");
+                        display = name + " (" + fileType + ")";
                     }
+                    String url = item.getString("url");
+                    searchResults.add(new SearchResult(display, url));
                 }
+
             } catch (JSONException e) {
                 e.printStackTrace();
                 result = e.getLocalizedMessage();
