@@ -15,7 +15,6 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListAdapter;
@@ -49,6 +48,9 @@ public class MainActivity extends Activity {
     private final String START_VALUE = "startValue";
     Button previousButton;
     private EditText searchQueryEditText;
+    /**
+     * TODO Rename "result" to "message" or something. It's no longer the search result.
+     */
     private String result = "";
     private List<SearchResult> searchResults;
     private int start;
@@ -86,7 +88,7 @@ public class MainActivity extends Activity {
             searchResults = new ArrayList<>();
             start = 0;
         }
-        ListAdapter listAdapter = new ArrayAdapter<SearchResult>(this, android.R.layout.simple_list_item_1, searchResults);
+        ListAdapter listAdapter = new SearchResultsAdapter(this, searchResults);
         ListView searchResultsListView = (ListView) findViewById(R.id.searchResultsListView);
         searchResultsListView.setAdapter(listAdapter);
         searchResultsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -242,7 +244,7 @@ public class MainActivity extends Activity {
         protected void onPostExecute(Void aVoid) {
             TextView searchResultsTextView = (TextView) findViewById(R.id.searchResultsTextView);
             searchResultsTextView.setText(result);
-            ListAdapter listAdapter = new ArrayAdapter<SearchResult>(MainActivity.this, android.R.layout.simple_list_item_1, searchResults);
+            ListAdapter listAdapter = new SearchResultsAdapter(getApplicationContext(), searchResults);
             ListView searchResultsListView = (ListView) findViewById(R.id.searchResultsListView);
             searchResultsListView.setAdapter(listAdapter);
         }
@@ -309,7 +311,8 @@ public class MainActivity extends Activity {
                         display = name + " (" + fileType + ")";
                     }
                     String url = item.getString("url");
-                    searchResults.add(new SearchResult(display, url));
+                    String imageUrl = item.getString("image_url");
+                    searchResults.add(new SearchResult(display, url, imageUrl));
                 }
 
             } catch (JSONException e) {
