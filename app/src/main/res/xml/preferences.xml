@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <EditTextPreference
-        android:defaultValue="dvn-build.hmdc.harvard.edu"
-        android:key="server"
-        android:summary="@string/settings_server_summary"
+    <ListPreference
+        android:defaultValue="apitest.dataverse.org"
+        android:entries="@array/server_entries"
+        android:entryValues="@array/server_values"
+        android:key="pref_server_list"
+        android:summary="%s"
         android:title="@string/settings_server_title" />
+
+    <EditTextPreference
+        android:defaultValue="apitest.dataverse.org"
+        android:key="custom_server"
+        android:summary="@string/settings_server_custom_summary"
+        android:title="@string/settings_server_custom_title" />
 
 </PreferenceScreen>

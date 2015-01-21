@@ -56,11 +56,12 @@ public class MainActivity extends Activity {
     private int start;
     private int rows = 10;
     private Integer totalCount;
-    private String hardCodedServer = "dvn-build.hmdc.harvard.edu";
+    private String searchServer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setupSearchServer();
         setContentView(R.layout.activity_main);
         previousButton = (Button) findViewById(R.id.previousButton);
 
@@ -115,8 +116,7 @@ public class MainActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        // hide menu until hard coded server resolved
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -141,16 +141,10 @@ public class MainActivity extends Activity {
         searchQueryEditText = (EditText) findViewById(R.id.searchQueryEditText);
 
         if (validQueryEntered(searchQueryEditText)) {
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-            String server = sharedPref.getString("server", null);
-            if (server == null || server.isEmpty()) {
-                // FIXME DRY! Hard-coded in preferences.xml too.
-                server = hardCodedServer;
-            }
-            Toast.makeText(this, getString(R.string.search_query_input_valid) + " " + server, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.search_query_input_valid) + " " + searchServer, Toast.LENGTH_SHORT).show();
             hideKeyboard(searchQueryEditText);
             start = 0;
-            new GetSearchResults(server).execute();
+            new GetSearchResults().execute();
 
         } else {
             Toast.makeText(this, getString(R.string.search_query_input_invalid), Toast.LENGTH_LONG).show();
@@ -174,23 +168,31 @@ public class MainActivity extends Activity {
     public void onPreviousClick(View view) {
         start -= rows;
         Toast.makeText(MainActivity.this, "Getting results from " + start, Toast.LENGTH_SHORT).show();
-        new GetSearchResults(hardCodedServer).execute();
+        new GetSearchResults().execute();
     }
 
     public void onNextClick(View view) {
         start += rows;
         Toast.makeText(MainActivity.this, "Getting results from " + start, Toast.LENGTH_SHORT).show();
-        new GetSearchResults(hardCodedServer).execute();
+        new GetSearchResults().execute();
+    }
+
+    private void setupSearchServer() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        searchServer = sharedPref.getString("pref_server_list", null);
+        if (searchServer != null) {
+            if (searchServer.equals("custom")) {
+                searchServer = sharedPref.getString("custom_server", null);
+            }
+        } else {
+            // sane default
+            searchServer = "apitest.dataverse.org";
+        }
     }
 
     class GetSearchResults extends AsyncTask<Void, Void, Void> {
 
         String jsonString = "";
-        String server = "";
-
-        GetSearchResults(String server) {
-            this.server = server;
-        }
 
         @Override
         protected Void doInBackground(Void... params) {
@@ -204,7 +206,7 @@ public class MainActivity extends Activity {
             DefaultHttpClient httpClient = new DefaultHttpClient(new BasicHttpParams());
             URI url = null;
             try {
-                url = URI.create("http://" + server + "/api/search?q=" + query + startParam);
+                url = URI.create("http://" + searchServer + "/api/search?q=" + query + startParam);
             } catch (IllegalArgumentException e) {
                 // newline in search query
                 result = getString(R.string.search_query_unparseable);
