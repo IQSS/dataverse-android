@@ -40,7 +40,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class MainActivity extends Activity {
 
     private final String SEARCH_API_RESPONSE = "searchApiResponse";
@@ -48,10 +47,7 @@ public class MainActivity extends Activity {
     private final String START_VALUE = "startValue";
     Button previousButton;
     private EditText searchQueryEditText;
-    /**
-     * TODO Rename "result" to "message" or something. It's no longer the search result.
-     */
-    private String result = "";
+    private String message = "";
     private List<SearchResult> searchResults;
     private int start;
     private int rows = 10;
@@ -70,8 +66,8 @@ public class MainActivity extends Activity {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    TextView searchResultsTextView = (TextView) findViewById(R.id.searchResultsTextView);
-                    onSearchClick(searchResultsTextView);
+                    TextView searchMessageTextView = (TextView) findViewById(R.id.searchMessageTextView);
+                    onSearchClick(searchMessageTextView);
                     return true;
                 }
                 return false;
@@ -80,9 +76,9 @@ public class MainActivity extends Activity {
 
         if (savedInstanceState != null) {
             // http://developer.android.com/training/basics/activity-lifecycle/recreating.html
-            result = savedInstanceState.getString(SEARCH_API_RESPONSE);
-            TextView searchResultsTextView = (TextView) findViewById(R.id.searchResultsTextView);
-            searchResultsTextView.setText(result);
+            message = savedInstanceState.getString(SEARCH_API_RESPONSE);
+            TextView searchMessageTextView = (TextView) findViewById(R.id.searchMessageTextView);
+            searchMessageTextView.setText(message);
             searchResults = savedInstanceState.getParcelableArrayList(SEARCH_RESULTS);
             start = savedInstanceState.getInt(START_VALUE);
         } else {
@@ -108,7 +104,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putInt(START_VALUE, start);
-        outState.putString(SEARCH_API_RESPONSE, result);
+        outState.putString(SEARCH_API_RESPONSE, message);
         outState.putParcelableArrayList(SEARCH_RESULTS, (ArrayList<? extends android.os.Parcelable>) searchResults);
         super.onSaveInstanceState(outState);
     }
@@ -167,13 +163,13 @@ public class MainActivity extends Activity {
 
     public void onPreviousClick(View view) {
         start -= rows;
-        Toast.makeText(MainActivity.this, "Getting results from " + start, Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, getString(R.string.getting_results_from) + start, Toast.LENGTH_SHORT).show();
         new GetSearchResults().execute();
     }
 
     public void onNextClick(View view) {
         start += rows;
-        Toast.makeText(MainActivity.this, "Getting results from " + start, Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, getString(R.string.getting_results_from) + start, Toast.LENGTH_SHORT).show();
         new GetSearchResults().execute();
     }
 
@@ -209,7 +205,7 @@ public class MainActivity extends Activity {
                 url = URI.create("http://" + searchServer + "/api/search?q=" + query + startParam);
             } catch (IllegalArgumentException e) {
                 // newline in search query
-                result = getString(R.string.search_query_unparseable);
+                message = getString(R.string.search_query_unparseable);
                 return null;
             }
             HttpGet httpGet = new HttpGet(url);
@@ -234,7 +230,7 @@ public class MainActivity extends Activity {
             } catch (IOException e) {
                 e.printStackTrace();
                 // unable to resolve host in DNS, for example
-                result = e.getLocalizedMessage();
+                message = e.getLocalizedMessage();
                 searchResults = new ArrayList<>();
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -244,8 +240,8 @@ public class MainActivity extends Activity {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            TextView searchResultsTextView = (TextView) findViewById(R.id.searchResultsTextView);
-            searchResultsTextView.setText(result);
+            TextView searchMessageTextView = (TextView) findViewById(R.id.searchMessageTextView);
+            searchMessageTextView.setText(message);
             ListAdapter listAdapter = new SearchResultsAdapter(getApplicationContext(), searchResults);
             ListView searchResultsListView = (ListView) findViewById(R.id.searchResultsListView);
             searchResultsListView.setAdapter(listAdapter);
@@ -257,7 +253,7 @@ public class MainActivity extends Activity {
                 data = jsonObject.getJSONObject("data");
             } catch (JSONException e) {
                 e.printStackTrace();
-                result = getString(R.string.search_query_unparseable);
+                message = getString(R.string.search_query_unparseable);
                 searchResults = new ArrayList<>();
                 return;
             }
@@ -266,11 +262,11 @@ public class MainActivity extends Activity {
             try {
                 totalCount = data.getInt("total_count");
                 if (totalCount == 0) {
-                    result = getString(R.string.search_query_no_results);
+                    message = getString(R.string.search_query_no_results);
                 } else if (totalCount == 1) {
-                    result = totalCount.toString() + " " + getString(R.string.search_results_singular);
+                    message = totalCount.toString() + " " + getString(R.string.search_results_singular);
                 } else {
-                    result = totalCount.toString() + " " + getString(R.string.search_results_plural);
+                    message = totalCount.toString() + " " + getString(R.string.search_results_plural);
                 }
 
                 runOnUiThread(new Runnable() {
@@ -319,7 +315,7 @@ public class MainActivity extends Activity {
 
             } catch (JSONException e) {
                 e.printStackTrace();
-                result = e.getLocalizedMessage();
+                message = e.getLocalizedMessage();
                 searchResults = new ArrayList<>();
             }
         }

@@ -18,5 +18,6 @@
     <string name="settings_server_custom">Custom</string>
     <string name="previous_button_text">Previous</string>
     <string name="next_button_text">Next</string>
+    <string name="getting_results_from">"Getting results from "</string>
 
 </resources>

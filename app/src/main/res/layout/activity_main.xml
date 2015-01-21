@@ -47,7 +47,7 @@
         android:text="@string/next_button_text" />
 
     <TextView
-        android:id="@+id/searchResultsTextView"
+        android:id="@+id/searchMessageTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/searchButton"
@@ -57,6 +57,6 @@
         android:id="@+id/searchResultsListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/searchResultsTextView" />
+        android:layout_below="@id/searchMessageTextView" />
 
 </RelativeLayout>
