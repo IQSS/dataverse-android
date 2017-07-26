@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <ListPreference
-        android:defaultValue="apitest.dataverse.org"
+        android:defaultValue="demo.dataverse.org"
         android:entries="@array/server_entries"
         android:entryValues="@array/server_values"
         android:key="pref_server_list"
@@ -10,7 +10,7 @@
         android:title="@string/settings_server_title" />
 
     <EditTextPreference
-        android:defaultValue="apitest.dataverse.org"
+        android:defaultValue="demo.dataverse.org"
         android:key="custom_server"
         android:summary="@string/settings_server_custom_summary"
         android:title="@string/settings_server_custom_title" />

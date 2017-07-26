@@ -2,16 +2,14 @@
 <resources>
 
     <string-array name="server_entries">
-        <item>apitest.dataverse.org</item>
-        <item>dataverse-demo.iq.harvard.edu</item>
-        <item>dvn-build.hmdc.harvard.edu</item>
+        <item>demo.dataverse.org</item>
+        <item>dataverse.harvard.edu</item>
         <item>@string/settings_server_custom</item>
     </string-array>
 
     <string-array name="server_values">
-        <item>apitest.dataverse.org</item>
-        <item>dataverse-demo.iq.harvard.edu</item>
-        <item>dvn-build.hmdc.harvard.edu</item>
+        <item>demo.dataverse.org</item>
+        <item>dataverse.harvard.edu</item>
         <item>custom</item>
     </string-array>
 

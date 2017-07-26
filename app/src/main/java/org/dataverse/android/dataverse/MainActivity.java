@@ -182,7 +182,7 @@ public class MainActivity extends Activity {
             }
         } else {
             // sane default
-            searchServer = "apitest.dataverse.org";
+            searchServer = "demo.dataverse.org";
         }
     }
 
