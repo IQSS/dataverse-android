@@ -309,7 +309,8 @@ public class MainActivity extends Activity {
                         display = name + " (" + fileType + ")";
                     }
                     String url = item.getString("url");
-                    String imageUrl = item.getString("image_url");
+                    // `image_url` from Search API results no longer yields a downloadable image - https://github.com/IQSS/dataverse/issues/3616
+                    String imageUrl = null; // item.getString("image_url");
                     searchResults.add(new SearchResult(display, url, imageUrl));
                 }
 
