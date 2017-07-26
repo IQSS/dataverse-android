@@ -294,7 +294,7 @@ public class MainActivity extends Activity {
                     String name = item.getString("name");
                     String type = item.getString("type");
                     if (type.equals("dataverse")) {
-                        display = name + " Dataverse";
+                        display = name;
                     } else if (type.equals("dataset")) {
                         String citation = item.getString("citation");
                         String globalId = item.getString("global_id");
