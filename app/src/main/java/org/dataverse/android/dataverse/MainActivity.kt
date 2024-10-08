@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             DataverseTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Android",
+                        name = "Dataverse",
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
