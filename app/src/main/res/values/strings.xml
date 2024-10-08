@@ -1,23 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Dataverse</string>
-    <string name="search_query">Enter a search query.</string>
-    <string name="action_settings">Settings</string>
-    <string name="search_button_text">Search</string>
-    <string name="search_query_input_valid">Searching</string>
-    <string name="search_query_input_invalid">Please enter a search query.</string>
-    <string name="search_query_unparseable">Sorry, there are no Dataverses, Datasets, or Files that match your search. Please try a new search by using other or broader terms.</string>
-    <string name="search_query_no_results">Sorry, there are no Dataverses, Datasets, or Files that match your search. Please try a new search by using other or broader terms.</string>
-    <string name="search_results_singular">"result"</string>
-    <string name="search_results_plural">"results"</string>
-    <string name="settings_name">Settings</string>
-    <string name="settings_server_title">Dataverse server</string>
-    <string name="settings_server_custom_summary">Provide a Dataverse server not on the default list.</string>
-    <string name="settings_server_custom_title">Custom Dataverse server</string>
-    <string name="settings_server_custom">Custom</string>
-    <string name="previous_button_text">Previous</string>
-    <string name="next_button_text">Next</string>
-    <string name="getting_results_from">"Getting results from "</string>
-
 </resources>
